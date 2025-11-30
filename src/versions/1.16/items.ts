@@ -1,4 +1,24 @@
 import type { ItemCategory } from '../../shared/types';
+import { POTION_EFFECTS } from './potionEffects';
+
+// Generate potion variant IDs for all potion types
+function generatePotionVariants(): string[] {
+  const potionTypes = ['potion', 'splash_potion', 'lingering_potion'];
+  const variants: string[] = [];
+
+  for (const potionType of potionTypes) {
+    for (const effect of POTION_EFFECTS) {
+      // Extract effect name from minecraft:xxx to xxx
+      const effectName = effect.id.replace('minecraft:', '');
+      variants.push(`minecraft:${potionType}.${effectName}`);
+    }
+  }
+
+  return variants;
+}
+
+// Potion variants (e.g., "minecraft:potion.fire_resistance")
+export const POTION_VARIANTS: string[] = generatePotionVariants();
 
 // Minecraft 1.16.x items organized by Creative Inventory tabs (excluding 'all')
 export const MINECRAFT_ITEMS: Record<Exclude<ItemCategory, 'all'>, string[]> = {
@@ -1356,9 +1376,9 @@ export const ALL_ITEMS: string[] = [
   'minecraft:zombified_piglin_spawn_egg',
 ];
 
-// Helper function to get all items
+// Helper function to get all items (including potion variants)
 export function getAllItems(): string[] {
-  return ALL_ITEMS;
+  return [...ALL_ITEMS, ...POTION_VARIANTS];
 }
 
 // Helper function to get items by category

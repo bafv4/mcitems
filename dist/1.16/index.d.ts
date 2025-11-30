@@ -27,6 +27,7 @@ interface CategoryDefinition {
     name: string;
 }
 
+declare const POTION_VARIANTS: string[];
 declare const MINECRAFT_ITEMS: Record<Exclude<ItemCategory, 'all'>, string[]>;
 declare function getAllItems(): string[];
 declare function getItemsByCategory(category: ItemCategory): string[];
@@ -83,6 +84,14 @@ declare const MINECRAFT_VERSION = "1.16";
  */
 declare const TEXTURE_PATH = "1.16.1/items";
 /**
+ * Parse potion item ID with effect (e.g., "minecraft:potion.fire_resistance")
+ * Returns the base item ID and the potion effect
+ */
+declare function parsePotionItemId(itemId: string): {
+    baseId: string;
+    potionEffect?: string;
+};
+/**
  * Search items by ID or name
  */
 declare function searchItems(query: string): string[];
@@ -97,4 +106,4 @@ declare function getTextureUrl(itemId: string, nbtData?: {
     Potion?: string;
 }, baseUrl?: string): string;
 
-export { type CategoryDefinition, type Enchantment, ITEM_CATEGORIES, type ItemCategory, MINECRAFT_ITEMS, MINECRAFT_VERSION, type MinecraftItem, type NBTItem, POTION_EFFECTS, POTION_EFFECT_TO_TEXTURE, type PotionEffectInfo, TEXTURE_PATH, formatItemName, formatPotionEffect, formatPotionName, getAllItems, getCraftableItems, getCraftableItemsByCategory, getItemNameJa, getItemsByCategory, getPotionEffectInfo, getPotionTextureVariant, getTextureUrl, searchItems };
+export { type CategoryDefinition, type Enchantment, ITEM_CATEGORIES, type ItemCategory, MINECRAFT_ITEMS, MINECRAFT_VERSION, type MinecraftItem, type NBTItem, POTION_EFFECTS, POTION_EFFECT_TO_TEXTURE, POTION_VARIANTS, type PotionEffectInfo, TEXTURE_PATH, formatItemName, formatPotionEffect, formatPotionName, getAllItems, getCraftableItems, getCraftableItemsByCategory, getItemNameJa, getItemsByCategory, getPotionEffectInfo, getPotionTextureVariant, getTextureUrl, parsePotionItemId, searchItems };

@@ -25,6 +25,7 @@ __export(__exports, {
   MINECRAFT_VERSION: () => MINECRAFT_VERSION,
   POTION_EFFECTS: () => POTION_EFFECTS,
   POTION_EFFECT_TO_TEXTURE: () => POTION_EFFECT_TO_TEXTURE,
+  POTION_VARIANTS: () => POTION_VARIANTS,
   TEXTURE_PATH: () => TEXTURE_PATH,
   formatItemName: () => formatItemName,
   formatPotionEffect: () => formatPotionEffect,
@@ -37,11 +38,155 @@ __export(__exports, {
   getPotionEffectInfo: () => getPotionEffectInfo,
   getPotionTextureVariant: () => getPotionTextureVariant,
   getTextureUrl: () => getTextureUrl,
+  parsePotionItemId: () => parsePotionItemId,
   searchItems: () => searchItems
 });
 module.exports = __toCommonJS(__exports);
 
+// src/versions/1.16/potionEffects.ts
+var POTION_EFFECTS = [
+  { id: "minecraft:water", name: "\u6C34\u5165\u308A\u74F6", variant: 1 },
+  { id: "minecraft:mundane", name: "\u3042\u308A\u3075\u308C\u305F\u30DD\u30FC\u30B7\u30E7\u30F3", variant: 2 },
+  { id: "minecraft:thick", name: "\u6FC3\u539A\u306A\u30DD\u30FC\u30B7\u30E7\u30F3", variant: 3 },
+  { id: "minecraft:awkward", name: "\u5947\u5999\u306A\u30DD\u30FC\u30B7\u30E7\u30F3", variant: 4 },
+  { id: "minecraft:night_vision", name: "\u6697\u8996", variant: 5, duration: "3:00" },
+  { id: "minecraft:long_night_vision", name: "\u6697\u8996", variant: 6, duration: "8:00" },
+  { id: "minecraft:invisibility", name: "\u900F\u660E\u5316", variant: 7, duration: "3:00" },
+  { id: "minecraft:long_invisibility", name: "\u900F\u660E\u5316", variant: 8, duration: "8:00" },
+  { id: "minecraft:leaping", name: "\u8DF3\u8E8D", variant: 9, duration: "3:00" },
+  { id: "minecraft:long_leaping", name: "\u8DF3\u8E8D", variant: 10, duration: "8:00" },
+  { id: "minecraft:strong_leaping", name: "\u8DF3\u8E8D", variant: 11, duration: "3:00" },
+  { id: "minecraft:fire_resistance", name: "\u706B\u708E\u8010\u6027", variant: 12, duration: "3:00" },
+  { id: "minecraft:long_fire_resistance", name: "\u706B\u708E\u8010\u6027", variant: 13, duration: "8:00" },
+  { id: "minecraft:swiftness", name: "\u4FCA\u654F", variant: 14, duration: "3:00" },
+  { id: "minecraft:long_swiftness", name: "\u4FCA\u654F", variant: 15, duration: "8:00" },
+  { id: "minecraft:strong_swiftness", name: "\u4FCA\u654F", variant: 16, duration: "3:00" },
+  { id: "minecraft:slowness", name: "\u920D\u5316", variant: 17, duration: "3:00" },
+  { id: "minecraft:long_slowness", name: "\u920D\u5316", variant: 18, duration: "8:00" },
+  { id: "minecraft:strong_slowness", name: "\u920D\u5316", variant: 19, duration: "3:00" },
+  { id: "minecraft:turtle_master", name: "\u30BF\u30FC\u30C8\u30EB\u30DE\u30B9\u30BF\u30FC", variant: 20, duration: "3:00" },
+  { id: "minecraft:long_turtle_master", name: "\u30BF\u30FC\u30C8\u30EB\u30DE\u30B9\u30BF\u30FC", variant: 21, duration: "8:00" },
+  { id: "minecraft:strong_turtle_master", name: "\u30BF\u30FC\u30C8\u30EB\u30DE\u30B9\u30BF\u30FC", variant: 22, duration: "3:00" },
+  { id: "minecraft:water_breathing", name: "\u6C34\u4E2D\u547C\u5438", variant: 23, duration: "3:00" },
+  { id: "minecraft:long_water_breathing", name: "\u6C34\u4E2D\u547C\u5438", variant: 24, duration: "8:00" },
+  { id: "minecraft:healing", name: "\u6CBB\u7652", variant: 25 },
+  { id: "minecraft:strong_healing", name: "\u6CBB\u7652", variant: 26 },
+  { id: "minecraft:harming", name: "\u30C0\u30E1\u30FC\u30B8", variant: 27 },
+  { id: "minecraft:strong_harming", name: "\u30C0\u30E1\u30FC\u30B8", variant: 28 },
+  { id: "minecraft:poison", name: "\u6BD2", variant: 29, duration: "3:00" },
+  { id: "minecraft:long_poison", name: "\u6BD2", variant: 30, duration: "8:00" },
+  { id: "minecraft:strong_poison", name: "\u6BD2", variant: 31, duration: "3:00" },
+  { id: "minecraft:regeneration", name: "\u518D\u751F", variant: 32, duration: "3:00" },
+  { id: "minecraft:long_regeneration", name: "\u518D\u751F", variant: 33, duration: "8:00" },
+  { id: "minecraft:strong_regeneration", name: "\u518D\u751F", variant: 34, duration: "3:00" },
+  { id: "minecraft:strength", name: "\u529B", variant: 35, duration: "3:00" },
+  { id: "minecraft:long_strength", name: "\u529B", variant: 36, duration: "8:00" },
+  { id: "minecraft:strong_strength", name: "\u529B", variant: 37, duration: "3:00" },
+  { id: "minecraft:weakness", name: "\u5F31\u5316", variant: 38, duration: "3:00" },
+  { id: "minecraft:long_weakness", name: "\u5F31\u5316", variant: 39, duration: "8:00" },
+  { id: "minecraft:slow_falling", name: "\u4F4E\u901F\u843D\u4E0B", variant: 40, duration: "3:00" },
+  { id: "minecraft:long_slow_falling", name: "\u4F4E\u901F\u843D\u4E0B", variant: 41, duration: "8:00" }
+];
+var POTION_EFFECT_TO_TEXTURE = {
+  // Water bottle / Mundane potions
+  "minecraft:water": 1,
+  "minecraft:mundane": 2,
+  "minecraft:thick": 3,
+  "minecraft:awkward": 4,
+  // Night Vision
+  "minecraft:night_vision": 5,
+  "minecraft:long_night_vision": 6,
+  // Invisibility
+  "minecraft:invisibility": 7,
+  "minecraft:long_invisibility": 8,
+  // Leaping / Jump Boost
+  "minecraft:leaping": 9,
+  "minecraft:long_leaping": 10,
+  "minecraft:strong_leaping": 11,
+  // Fire Resistance
+  "minecraft:fire_resistance": 12,
+  "minecraft:long_fire_resistance": 13,
+  // Swiftness / Speed
+  "minecraft:swiftness": 14,
+  "minecraft:long_swiftness": 15,
+  "minecraft:strong_swiftness": 16,
+  // Slowness
+  "minecraft:slowness": 17,
+  "minecraft:long_slowness": 18,
+  "minecraft:strong_slowness": 19,
+  // Turtle Master
+  "minecraft:turtle_master": 20,
+  "minecraft:long_turtle_master": 21,
+  "minecraft:strong_turtle_master": 22,
+  // Water Breathing
+  "minecraft:water_breathing": 23,
+  "minecraft:long_water_breathing": 24,
+  // Healing / Instant Health
+  "minecraft:healing": 25,
+  "minecraft:strong_healing": 26,
+  // Harming / Instant Damage
+  "minecraft:harming": 27,
+  "minecraft:strong_harming": 28,
+  // Poison
+  "minecraft:poison": 29,
+  "minecraft:long_poison": 30,
+  "minecraft:strong_poison": 31,
+  // Regeneration
+  "minecraft:regeneration": 32,
+  "minecraft:long_regeneration": 33,
+  "minecraft:strong_regeneration": 34,
+  // Strength
+  "minecraft:strength": 35,
+  "minecraft:long_strength": 36,
+  "minecraft:strong_strength": 37,
+  // Weakness
+  "minecraft:weakness": 38,
+  "minecraft:long_weakness": 39,
+  // Slow Falling
+  "minecraft:slow_falling": 40,
+  "minecraft:long_slow_falling": 41
+};
+function getPotionTextureVariant(potionEffect) {
+  if (!potionEffect) return void 0;
+  return POTION_EFFECT_TO_TEXTURE[potionEffect];
+}
+function getPotionEffectInfo(potionEffect) {
+  if (!potionEffect) return void 0;
+  return POTION_EFFECTS.find((e) => e.id === potionEffect);
+}
+function formatPotionName(itemId, potionEffect) {
+  const effectInfo = getPotionEffectInfo(potionEffect);
+  const effectName = effectInfo?.name || "\u4E0D\u660E";
+  if (itemId === "minecraft:splash_potion") {
+    return `${effectName}\u306E\u30B9\u30D7\u30E9\u30C3\u30B7\u30E5\u30DD\u30FC\u30B7\u30E7\u30F3`;
+  } else if (itemId === "minecraft:lingering_potion") {
+    return `${effectName}\u306E\u6B8B\u7559\u30DD\u30FC\u30B7\u30E7\u30F3`;
+  } else {
+    return `${effectName}\u306E\u30DD\u30FC\u30B7\u30E7\u30F3`;
+  }
+}
+function formatPotionEffect(potionEffect) {
+  const effectInfo = getPotionEffectInfo(potionEffect);
+  if (!effectInfo) return "\u4E0D\u660E";
+  if (effectInfo.duration) {
+    return `${effectInfo.name} (${effectInfo.duration})`;
+  }
+  return effectInfo.name;
+}
+
 // src/versions/1.16/items.ts
+function generatePotionVariants() {
+  const potionTypes = ["potion", "splash_potion", "lingering_potion"];
+  const variants = [];
+  for (const potionType of potionTypes) {
+    for (const effect of POTION_EFFECTS) {
+      const effectName = effect.id.replace("minecraft:", "");
+      variants.push(`minecraft:${potionType}.${effectName}`);
+    }
+  }
+  return variants;
+}
+var POTION_VARIANTS = generatePotionVariants();
 var MINECRAFT_ITEMS = {
   // 建築ブロック (Building Blocks)
   building_blocks: [
@@ -1387,7 +1532,7 @@ var ALL_ITEMS = [
   "minecraft:zombified_piglin_spawn_egg"
 ];
 function getAllItems() {
-  return ALL_ITEMS;
+  return [...ALL_ITEMS, ...POTION_VARIANTS];
 }
 function getItemsByCategory(category) {
   if (category === "all") {
@@ -1503,137 +1648,6 @@ function getCraftableItemsByCategory(category) {
     return getCraftableItems();
   }
   return (MINECRAFT_ITEMS[category] || []).filter((item) => !NON_CRAFTABLE_ITEMS.has(item));
-}
-
-// src/versions/1.16/potionEffects.ts
-var POTION_EFFECTS = [
-  { id: "minecraft:water", name: "\u6C34\u5165\u308A\u74F6", variant: 1 },
-  { id: "minecraft:mundane", name: "\u3042\u308A\u3075\u308C\u305F\u30DD\u30FC\u30B7\u30E7\u30F3", variant: 2 },
-  { id: "minecraft:thick", name: "\u6FC3\u539A\u306A\u30DD\u30FC\u30B7\u30E7\u30F3", variant: 3 },
-  { id: "minecraft:awkward", name: "\u5947\u5999\u306A\u30DD\u30FC\u30B7\u30E7\u30F3", variant: 4 },
-  { id: "minecraft:night_vision", name: "\u6697\u8996", variant: 5, duration: "3:00" },
-  { id: "minecraft:long_night_vision", name: "\u6697\u8996", variant: 6, duration: "8:00" },
-  { id: "minecraft:invisibility", name: "\u900F\u660E\u5316", variant: 7, duration: "3:00" },
-  { id: "minecraft:long_invisibility", name: "\u900F\u660E\u5316", variant: 8, duration: "8:00" },
-  { id: "minecraft:leaping", name: "\u8DF3\u8E8D", variant: 9, duration: "3:00" },
-  { id: "minecraft:long_leaping", name: "\u8DF3\u8E8D", variant: 10, duration: "8:00" },
-  { id: "minecraft:strong_leaping", name: "\u8DF3\u8E8D", variant: 11, duration: "3:00" },
-  { id: "minecraft:fire_resistance", name: "\u706B\u708E\u8010\u6027", variant: 12, duration: "3:00" },
-  { id: "minecraft:long_fire_resistance", name: "\u706B\u708E\u8010\u6027", variant: 13, duration: "8:00" },
-  { id: "minecraft:swiftness", name: "\u4FCA\u654F", variant: 14, duration: "3:00" },
-  { id: "minecraft:long_swiftness", name: "\u4FCA\u654F", variant: 15, duration: "8:00" },
-  { id: "minecraft:strong_swiftness", name: "\u4FCA\u654F", variant: 16, duration: "3:00" },
-  { id: "minecraft:slowness", name: "\u920D\u5316", variant: 17, duration: "3:00" },
-  { id: "minecraft:long_slowness", name: "\u920D\u5316", variant: 18, duration: "8:00" },
-  { id: "minecraft:strong_slowness", name: "\u920D\u5316", variant: 19, duration: "3:00" },
-  { id: "minecraft:turtle_master", name: "\u30BF\u30FC\u30C8\u30EB\u30DE\u30B9\u30BF\u30FC", variant: 20, duration: "3:00" },
-  { id: "minecraft:long_turtle_master", name: "\u30BF\u30FC\u30C8\u30EB\u30DE\u30B9\u30BF\u30FC", variant: 21, duration: "8:00" },
-  { id: "minecraft:strong_turtle_master", name: "\u30BF\u30FC\u30C8\u30EB\u30DE\u30B9\u30BF\u30FC", variant: 22, duration: "3:00" },
-  { id: "minecraft:water_breathing", name: "\u6C34\u4E2D\u547C\u5438", variant: 23, duration: "3:00" },
-  { id: "minecraft:long_water_breathing", name: "\u6C34\u4E2D\u547C\u5438", variant: 24, duration: "8:00" },
-  { id: "minecraft:healing", name: "\u6CBB\u7652", variant: 25 },
-  { id: "minecraft:strong_healing", name: "\u6CBB\u7652", variant: 26 },
-  { id: "minecraft:harming", name: "\u30C0\u30E1\u30FC\u30B8", variant: 27 },
-  { id: "minecraft:strong_harming", name: "\u30C0\u30E1\u30FC\u30B8", variant: 28 },
-  { id: "minecraft:poison", name: "\u6BD2", variant: 29, duration: "3:00" },
-  { id: "minecraft:long_poison", name: "\u6BD2", variant: 30, duration: "8:00" },
-  { id: "minecraft:strong_poison", name: "\u6BD2", variant: 31, duration: "3:00" },
-  { id: "minecraft:regeneration", name: "\u518D\u751F", variant: 32, duration: "3:00" },
-  { id: "minecraft:long_regeneration", name: "\u518D\u751F", variant: 33, duration: "8:00" },
-  { id: "minecraft:strong_regeneration", name: "\u518D\u751F", variant: 34, duration: "3:00" },
-  { id: "minecraft:strength", name: "\u529B", variant: 35, duration: "3:00" },
-  { id: "minecraft:long_strength", name: "\u529B", variant: 36, duration: "8:00" },
-  { id: "minecraft:strong_strength", name: "\u529B", variant: 37, duration: "3:00" },
-  { id: "minecraft:weakness", name: "\u5F31\u5316", variant: 38, duration: "3:00" },
-  { id: "minecraft:long_weakness", name: "\u5F31\u5316", variant: 39, duration: "8:00" },
-  { id: "minecraft:slow_falling", name: "\u4F4E\u901F\u843D\u4E0B", variant: 40, duration: "3:00" },
-  { id: "minecraft:long_slow_falling", name: "\u4F4E\u901F\u843D\u4E0B", variant: 41, duration: "8:00" }
-];
-var POTION_EFFECT_TO_TEXTURE = {
-  // Water bottle / Mundane potions
-  "minecraft:water": 1,
-  "minecraft:mundane": 2,
-  "minecraft:thick": 3,
-  "minecraft:awkward": 4,
-  // Night Vision
-  "minecraft:night_vision": 5,
-  "minecraft:long_night_vision": 6,
-  // Invisibility
-  "minecraft:invisibility": 7,
-  "minecraft:long_invisibility": 8,
-  // Leaping / Jump Boost
-  "minecraft:leaping": 9,
-  "minecraft:long_leaping": 10,
-  "minecraft:strong_leaping": 11,
-  // Fire Resistance
-  "minecraft:fire_resistance": 12,
-  "minecraft:long_fire_resistance": 13,
-  // Swiftness / Speed
-  "minecraft:swiftness": 14,
-  "minecraft:long_swiftness": 15,
-  "minecraft:strong_swiftness": 16,
-  // Slowness
-  "minecraft:slowness": 17,
-  "minecraft:long_slowness": 18,
-  "minecraft:strong_slowness": 19,
-  // Turtle Master
-  "minecraft:turtle_master": 20,
-  "minecraft:long_turtle_master": 21,
-  "minecraft:strong_turtle_master": 22,
-  // Water Breathing
-  "minecraft:water_breathing": 23,
-  "minecraft:long_water_breathing": 24,
-  // Healing / Instant Health
-  "minecraft:healing": 25,
-  "minecraft:strong_healing": 26,
-  // Harming / Instant Damage
-  "minecraft:harming": 27,
-  "minecraft:strong_harming": 28,
-  // Poison
-  "minecraft:poison": 29,
-  "minecraft:long_poison": 30,
-  "minecraft:strong_poison": 31,
-  // Regeneration
-  "minecraft:regeneration": 32,
-  "minecraft:long_regeneration": 33,
-  "minecraft:strong_regeneration": 34,
-  // Strength
-  "minecraft:strength": 35,
-  "minecraft:long_strength": 36,
-  "minecraft:strong_strength": 37,
-  // Weakness
-  "minecraft:weakness": 38,
-  "minecraft:long_weakness": 39,
-  // Slow Falling
-  "minecraft:slow_falling": 40,
-  "minecraft:long_slow_falling": 41
-};
-function getPotionTextureVariant(potionEffect) {
-  if (!potionEffect) return void 0;
-  return POTION_EFFECT_TO_TEXTURE[potionEffect];
-}
-function getPotionEffectInfo(potionEffect) {
-  if (!potionEffect) return void 0;
-  return POTION_EFFECTS.find((e) => e.id === potionEffect);
-}
-function formatPotionName(itemId, potionEffect) {
-  const effectInfo = getPotionEffectInfo(potionEffect);
-  const effectName = effectInfo?.name || "\u4E0D\u660E";
-  if (itemId === "minecraft:splash_potion") {
-    return `${effectName}\u306E\u30B9\u30D7\u30E9\u30C3\u30B7\u30E5\u30DD\u30FC\u30B7\u30E7\u30F3`;
-  } else if (itemId === "minecraft:lingering_potion") {
-    return `${effectName}\u306E\u6B8B\u7559\u30DD\u30FC\u30B7\u30E7\u30F3`;
-  } else {
-    return `${effectName}\u306E\u30DD\u30FC\u30B7\u30E7\u30F3`;
-  }
-}
-function formatPotionEffect(potionEffect) {
-  const effectInfo = getPotionEffectInfo(potionEffect);
-  if (!effectInfo) return "\u4E0D\u660E";
-  if (effectInfo.duration) {
-    return `${effectInfo.name} (${effectInfo.duration})`;
-  }
-  return effectInfo.name;
 }
 
 // src/assets/ja_jp.json
@@ -6466,6 +6480,20 @@ function getItemNameJa(itemId) {
 // src/versions/1.16/core.ts
 var MINECRAFT_VERSION = "1.16";
 var TEXTURE_PATH = "1.16.1/items";
+function parsePotionItemId(itemId) {
+  const potionTypes = ["potion", "splash_potion", "lingering_potion"];
+  for (const potionType of potionTypes) {
+    const prefix = `minecraft:${potionType}.`;
+    if (itemId.startsWith(prefix)) {
+      const effect = itemId.slice(prefix.length);
+      return {
+        baseId: `minecraft:${potionType}`,
+        potionEffect: `minecraft:${effect}`
+      };
+    }
+  }
+  return { baseId: itemId };
+}
 function searchItems(query) {
   if (!query) return getAllItems();
   const lowerQuery = query.toLowerCase();
@@ -6477,10 +6505,18 @@ function searchItems(query) {
     if (itemName.toLowerCase().includes(lowerQuery)) {
       return true;
     }
+    const formattedName = formatItemName(item);
+    if (formattedName.toLowerCase().includes(lowerQuery)) {
+      return true;
+    }
     return false;
   });
 }
 function formatItemName(itemId) {
+  const { baseId, potionEffect } = parsePotionItemId(itemId);
+  if (potionEffect) {
+    return formatPotionName(baseId, potionEffect);
+  }
   const jaName = getItemNameJa(itemId);
   if (jaName) {
     return jaName;
@@ -6488,15 +6524,16 @@ function formatItemName(itemId) {
   return itemId.replace("minecraft:", "").split("_").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
 }
 function getTextureUrl(itemId, nbtData, baseUrl = "") {
-  let normalizedId = itemId;
-  if (itemId === "minecraft:shulker_box") {
+  const { baseId, potionEffect: parsedPotionEffect } = parsePotionItemId(itemId);
+  let normalizedId = baseId;
+  if (baseId === "minecraft:shulker_box") {
     normalizedId = "minecraft:purple_shulker_box";
   }
-  if (itemId === "minecraft:potion" || itemId === "minecraft:splash_potion" || itemId === "minecraft:lingering_potion") {
-    const potionEffect = nbtData?.Potion;
+  if (baseId === "minecraft:potion" || baseId === "minecraft:splash_potion" || baseId === "minecraft:lingering_potion") {
+    const potionEffect = parsedPotionEffect || nbtData?.Potion;
     const variant = getPotionTextureVariant(potionEffect);
     if (variant) {
-      const itemName = itemId.replace("minecraft:", "");
+      const itemName = baseId.replace("minecraft:", "");
       normalizedId = `minecraft:${itemName}_${variant}`;
     }
   }
@@ -6510,6 +6547,7 @@ function getTextureUrl(itemId, nbtData, baseUrl = "") {
   MINECRAFT_VERSION,
   POTION_EFFECTS,
   POTION_EFFECT_TO_TEXTURE,
+  POTION_VARIANTS,
   TEXTURE_PATH,
   formatItemName,
   formatPotionEffect,
@@ -6522,6 +6560,7 @@ function getTextureUrl(itemId, nbtData, baseUrl = "") {
   getPotionEffectInfo,
   getPotionTextureVariant,
   getTextureUrl,
+  parsePotionItemId,
   searchItems
 });
 //# sourceMappingURL=index.cjs.map

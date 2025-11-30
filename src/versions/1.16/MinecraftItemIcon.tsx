@@ -18,6 +18,28 @@ export interface MinecraftItemIconProps
 }
 
 /**
+ * Parse potion item ID with effect (e.g., "minecraft:potion.fire_resistance")
+ * Returns the base item ID and the potion effect
+ */
+function parsePotionItemId(itemId: string): { baseId: string; potionEffect?: string } {
+  // Check if the item ID contains a potion effect suffix
+  const potionTypes = ['potion', 'splash_potion', 'lingering_potion'];
+
+  for (const potionType of potionTypes) {
+    const prefix = `minecraft:${potionType}.`;
+    if (itemId.startsWith(prefix)) {
+      const effect = itemId.slice(prefix.length);
+      return {
+        baseId: `minecraft:${potionType}`,
+        potionEffect: `minecraft:${effect}`,
+      };
+    }
+  }
+
+  return { baseId: itemId };
+}
+
+/**
  * Get the texture URL for a Minecraft item (1.16 version)
  */
 function getTextureUrl(
@@ -25,24 +47,27 @@ function getTextureUrl(
   nbtData?: { Potion?: string },
   baseUrl: string = ''
 ): string {
-  let normalizedId = itemId;
+  // Parse potion item ID with effect suffix
+  const { baseId, potionEffect: parsedPotionEffect } = parsePotionItemId(itemId);
+  let normalizedId = baseId;
 
   // Handle special cases
-  if (itemId === 'minecraft:shulker_box') {
+  if (baseId === 'minecraft:shulker_box') {
     normalizedId = 'minecraft:purple_shulker_box';
   }
 
   // Handle potions with effect variants
   if (
-    itemId === 'minecraft:potion' ||
-    itemId === 'minecraft:splash_potion' ||
-    itemId === 'minecraft:lingering_potion'
+    baseId === 'minecraft:potion' ||
+    baseId === 'minecraft:splash_potion' ||
+    baseId === 'minecraft:lingering_potion'
   ) {
-    const potionEffect = nbtData?.Potion;
+    // Use parsed effect from item ID, or fall back to nbtData
+    const potionEffect = parsedPotionEffect || nbtData?.Potion;
     const variant = getPotionTextureVariant(potionEffect);
 
     if (variant) {
-      const itemName = itemId.replace('minecraft:', '');
+      const itemName = baseId.replace('minecraft:', '');
       normalizedId = `minecraft:${itemName}_${variant}`;
     }
   }

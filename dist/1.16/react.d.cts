@@ -1,6 +1,6 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
 import { ImgHTMLAttributes } from 'react';
-export { CategoryDefinition, Enchantment, ITEM_CATEGORIES, ItemCategory, MINECRAFT_ITEMS, MINECRAFT_VERSION, MinecraftItem, NBTItem, POTION_EFFECTS, POTION_EFFECT_TO_TEXTURE, PotionEffectInfo, TEXTURE_PATH, formatItemName, formatPotionEffect, formatPotionName, getAllItems, getCraftableItems, getCraftableItemsByCategory, getItemNameJa, getItemsByCategory, getPotionEffectInfo, getPotionTextureVariant, getTextureUrl, searchItems } from './index.cjs';
+export { CategoryDefinition, Enchantment, ITEM_CATEGORIES, ItemCategory, MINECRAFT_ITEMS, MINECRAFT_VERSION, MinecraftItem, NBTItem, POTION_EFFECTS, POTION_EFFECT_TO_TEXTURE, POTION_VARIANTS, PotionEffectInfo, TEXTURE_PATH, formatItemName, formatPotionEffect, formatPotionName, getAllItems, getCraftableItems, getCraftableItemsByCategory, getItemNameJa, getItemsByCategory, getPotionEffectInfo, getPotionTextureVariant, getTextureUrl, parsePotionItemId, searchItems } from './index.cjs';
 
 interface MinecraftItemIconProps extends Omit<ImgHTMLAttributes<HTMLImageElement>, 'src' | 'alt'> {
     itemId: string;

@@ -26,6 +26,7 @@ __export(react_exports, {
   MinecraftItemIcon: () => MinecraftItemIcon,
   POTION_EFFECTS: () => POTION_EFFECTS,
   POTION_EFFECT_TO_TEXTURE: () => POTION_EFFECT_TO_TEXTURE,
+  POTION_VARIANTS: () => POTION_VARIANTS,
   TEXTURE_PATH: () => TEXTURE_PATH,
   formatItemName: () => formatItemName,
   formatPotionEffect: () => formatPotionEffect,
@@ -38,6 +39,7 @@ __export(react_exports, {
   getPotionEffectInfo: () => getPotionEffectInfo,
   getPotionTextureVariant: () => getPotionTextureVariant,
   getTextureUrl: () => getTextureUrl,
+  parsePotionItemId: () => parsePotionItemId,
   searchItems: () => searchItems
 });
 module.exports = __toCommonJS(react_exports);
@@ -237,6 +239,18 @@ function getItemEmoji(itemId) {
 }
 
 // src/versions/1.16/items.ts
+function generatePotionVariants() {
+  const potionTypes = ["potion", "splash_potion", "lingering_potion"];
+  const variants = [];
+  for (const potionType of potionTypes) {
+    for (const effect of POTION_EFFECTS) {
+      const effectName = effect.id.replace("minecraft:", "");
+      variants.push(`minecraft:${potionType}.${effectName}`);
+    }
+  }
+  return variants;
+}
+var POTION_VARIANTS = generatePotionVariants();
 var MINECRAFT_ITEMS = {
   // 建築ブロック (Building Blocks)
   building_blocks: [
@@ -1582,7 +1596,7 @@ var ALL_ITEMS = [
   "minecraft:zombified_piglin_spawn_egg"
 ];
 function getAllItems() {
-  return ALL_ITEMS;
+  return [...ALL_ITEMS, ...POTION_VARIANTS];
 }
 function getItemsByCategory(category) {
   if (category === "all") {
@@ -6530,6 +6544,20 @@ function getItemNameJa(itemId) {
 // src/versions/1.16/core.ts
 var MINECRAFT_VERSION = "1.16";
 var TEXTURE_PATH = "1.16.1/items";
+function parsePotionItemId(itemId) {
+  const potionTypes = ["potion", "splash_potion", "lingering_potion"];
+  for (const potionType of potionTypes) {
+    const prefix = `minecraft:${potionType}.`;
+    if (itemId.startsWith(prefix)) {
+      const effect = itemId.slice(prefix.length);
+      return {
+        baseId: `minecraft:${potionType}`,
+        potionEffect: `minecraft:${effect}`
+      };
+    }
+  }
+  return { baseId: itemId };
+}
 function searchItems(query) {
   if (!query) return getAllItems();
   const lowerQuery = query.toLowerCase();
@@ -6541,10 +6569,18 @@ function searchItems(query) {
     if (itemName.toLowerCase().includes(lowerQuery)) {
       return true;
     }
+    const formattedName = formatItemName(item);
+    if (formattedName.toLowerCase().includes(lowerQuery)) {
+      return true;
+    }
     return false;
   });
 }
 function formatItemName(itemId) {
+  const { baseId, potionEffect } = parsePotionItemId(itemId);
+  if (potionEffect) {
+    return formatPotionName(baseId, potionEffect);
+  }
   const jaName = getItemNameJa(itemId);
   if (jaName) {
     return jaName;
@@ -6552,15 +6588,16 @@ function formatItemName(itemId) {
   return itemId.replace("minecraft:", "").split("_").map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
 }
 function getTextureUrl(itemId, nbtData, baseUrl = "") {
-  let normalizedId = itemId;
-  if (itemId === "minecraft:shulker_box") {
+  const { baseId, potionEffect: parsedPotionEffect } = parsePotionItemId(itemId);
+  let normalizedId = baseId;
+  if (baseId === "minecraft:shulker_box") {
     normalizedId = "minecraft:purple_shulker_box";
   }
-  if (itemId === "minecraft:potion" || itemId === "minecraft:splash_potion" || itemId === "minecraft:lingering_potion") {
-    const potionEffect = nbtData?.Potion;
+  if (baseId === "minecraft:potion" || baseId === "minecraft:splash_potion" || baseId === "minecraft:lingering_potion") {
+    const potionEffect = parsedPotionEffect || nbtData?.Potion;
     const variant = getPotionTextureVariant(potionEffect);
     if (variant) {
-      const itemName = itemId.replace("minecraft:", "");
+      const itemName = baseId.replace("minecraft:", "");
       normalizedId = `minecraft:${itemName}_${variant}`;
     }
   }
@@ -6570,16 +6607,31 @@ function getTextureUrl(itemId, nbtData, baseUrl = "") {
 
 // src/versions/1.16/MinecraftItemIcon.tsx
 var import_jsx_runtime = require("react/jsx-runtime");
+function parsePotionItemId2(itemId) {
+  const potionTypes = ["potion", "splash_potion", "lingering_potion"];
+  for (const potionType of potionTypes) {
+    const prefix = `minecraft:${potionType}.`;
+    if (itemId.startsWith(prefix)) {
+      const effect = itemId.slice(prefix.length);
+      return {
+        baseId: `minecraft:${potionType}`,
+        potionEffect: `minecraft:${effect}`
+      };
+    }
+  }
+  return { baseId: itemId };
+}
 function getTextureUrl2(itemId, nbtData, baseUrl = "") {
-  let normalizedId = itemId;
-  if (itemId === "minecraft:shulker_box") {
+  const { baseId, potionEffect: parsedPotionEffect } = parsePotionItemId2(itemId);
+  let normalizedId = baseId;
+  if (baseId === "minecraft:shulker_box") {
     normalizedId = "minecraft:purple_shulker_box";
   }
-  if (itemId === "minecraft:potion" || itemId === "minecraft:splash_potion" || itemId === "minecraft:lingering_potion") {
-    const potionEffect = nbtData?.Potion;
+  if (baseId === "minecraft:potion" || baseId === "minecraft:splash_potion" || baseId === "minecraft:lingering_potion") {
+    const potionEffect = parsedPotionEffect || nbtData?.Potion;
     const variant = getPotionTextureVariant(potionEffect);
     if (variant) {
-      const itemName = itemId.replace("minecraft:", "");
+      const itemName = baseId.replace("minecraft:", "");
       normalizedId = `minecraft:${itemName}_${variant}`;
     }
   }
@@ -6666,6 +6718,7 @@ function MinecraftItemIcon({
   MinecraftItemIcon,
   POTION_EFFECTS,
   POTION_EFFECT_TO_TEXTURE,
+  POTION_VARIANTS,
   TEXTURE_PATH,
   formatItemName,
   formatPotionEffect,
@@ -6678,6 +6731,7 @@ function MinecraftItemIcon({
   getPotionEffectInfo,
   getPotionTextureVariant,
   getTextureUrl,
+  parsePotionItemId,
   searchItems
 });
 //# sourceMappingURL=react.cjs.map
