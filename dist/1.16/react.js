@@ -1556,6 +1556,9 @@ function getItemsByCategory(category) {
   if (category === "all") {
     return getAllItems();
   }
+  if (category === "brewing") {
+    return [...MINECRAFT_ITEMS.brewing, ...POTION_VARIANTS];
+  }
   return MINECRAFT_ITEMS[category] || [];
 }
 var ITEM_CATEGORIES = [

@@ -1386,6 +1386,10 @@ export function getItemsByCategory(category: ItemCategory): string[] {
   if (category === 'all') {
     return getAllItems();
   }
+  if (category === 'brewing') {
+    // Include potion variants in the brewing category
+    return [...MINECRAFT_ITEMS.brewing, ...POTION_VARIANTS];
+  }
   return MINECRAFT_ITEMS[category] || [];
 }
 
